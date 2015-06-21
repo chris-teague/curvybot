@@ -1,0 +1,61 @@
+// On start, sent to client_id?
+
+[[1,
+  {"success":true,
+    "room":
+      {"name":"test",
+    "players":[],
+       "game":false,
+     "config":
+        {"maxScore":null,
+        "variables":{"bonusRate":0},
+          "bonuses":{"BonusSelfSmall":true,"BonusSelfSlow":true,"BonusSelfFast":true,"BonusSelfMaster":true,"BonusEnemySlow":true,"BonusEnemyFast":true,"BonusEnemyBig":true,"BonusEnemyInverse":true,"BonusEnemyStraightAngle":true,"BonusAllBorderless":true,"BonusAllColor":true,"BonusGameClear":true}
+        }
+      },
+   "master":null,
+   "clients":[{"id":139,"active":true}],
+   "messages":[],
+   "votes":[]
+  }]]
+
+
+[["room:join",{"player":{"client":139,"id":2,"name":"Cornholio","color":"#fa00ff","ready":false,"active":true}}],["room:players",{"name":"test","players":1}],["room:master",{"client":139}]]
+
+
+[["player:ready",{"player":2,"ready":true}],["game:spectators",0],["room:game:start"],["room:game",{"name":"test","game":true}]]
+
+
+[["ready",{"avatar":2}],["round:new"],["position",[2,[1161,5680]]],["property",{"avatar":2,"property":"angle","value":5.009398352062902}]]
+
+
+[["ready",{"avatar":3}],["round:new"],["position",[3,[5572,2448]]],["property",{"avatar":3,"property":"angle","value":4.216029962273533}],["position",[2,[1043,6907]]],["property",{"avatar":2,"property":"angle","value":0.15866451219094002}]]
+
+
+// Ending
+[["position",[2,[48,2036]]],["point",[2,[48,2036]]],["die",{"avatar":2,"angle":3.0101983520628988,"killer":null,"old":null}],["property",{"avatar":2,"property":"roundScore","value":0}],["round:end"],["property",{"avatar":2,"property":"roundScore","value":1}],["round:winner",{"winner":2}],["property",{"avatar":2,"property":"score","value":1}]]
+
+
+
+// Bonuses
+
+[[
+  "bonus:pop",
+  {
+    "id":1,"type":"BonusEnemySlow","radius":3,"position":[73.88008865537122,57.274499180074784],"affect":"enemy","duration":5000
+  }
+]]
+
+[["game:stop"],["end"],["room:game",{"name":"test","game":false}]]
+
+
+// Post this occationally...
+[["activity",true]]
+
+
+
+[["position",[3,[7842,7947]]],["point",[3,[7842,7947]]],["point",[3,[7842,7947]]],["property",{"avatar":3,"property":"printing","value":false}],["point",[3,[7842,7947]]],["die",{"avatar":3,"angle":0.3474787271779094,"killer":null,"old":null}],["property",{"avatar":3,"property":"roundScore","value":0}],["round:end"],["property",{"avatar":3,"property":"roundScore","value":1}],["round:winner",{"winner":3}],["property",{"avatar":3,"property":"score","value":1}]]
+
+// Interesting ones we need to handle asap:
+[["die",{"avatar":3,"angle":0.3474787271779094,"killer":null,"old":null}]]
+[["round:end"]]
+[["round:winner",{"winner":3}]]
