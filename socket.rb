@@ -4,6 +4,9 @@ require 'pry'
 require_relative 'curvy'
 require_relative 'personality'
 require_relative 'random_bot'
+require_relative 'battlefield'
+require_relative 'room'
+require_relative 'round'
 
 EM.run {
 

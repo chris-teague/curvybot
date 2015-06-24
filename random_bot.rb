@@ -1,6 +1,6 @@
 class RandomBot < Personality
 
-  attr_accessor :desired_direction
+  attr_accessor :desired_direction, :random_direction_details
 
   MAP_SIZE=8000
 
@@ -23,6 +23,8 @@ class RandomBot < Personality
 
     if going_to_hit_wall?
       avoid_wall
+    else
+      randomly_continue
     end
   end
 
@@ -33,7 +35,6 @@ class RandomBot < Personality
     end
 
     def avoid_wall
-      # puts 'AVOID THE WALL!'
       set_desired_direction_as_center
     end
 
@@ -50,11 +51,25 @@ class RandomBot < Personality
       if dir >= 0 && dir < 180
         left!
       elsif dir >= 180
-        right!
+        left!
       elsif dir < 0 && dir >= -180
         left!
       elsif dir < -180
-        right!
+        left!
+      end
+    end
+
+    def randomly_continue
+      if @random_direction_details
+        direction, count = @random_direction_details
+        if count > 0
+          send(direction)
+          @random_direction_details = [direction, count - 1]
+        else
+          @random_direction_details = nil
+        end
+      else
+        @random_direction_details = [[:left!, :right!, :straight!].shuffle.first, rand(10..100)]
       end
     end
 
