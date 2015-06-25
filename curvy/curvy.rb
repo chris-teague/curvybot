@@ -10,7 +10,8 @@ require 'json'
 class Curvy
 
   attr_accessor :rooms, :id, :player_id, :connection, :dead,
-                :in_room, :room_name, :playing, :next_ready
+                :in_room, :room_name, :playing, :next_ready,
+                :avatar
 
   MESSAGE  = /(room|round):(\w*)/
 
@@ -104,7 +105,7 @@ class Curvy
       @next_ready = false
       @avatar = json["avatar"]
       @battlefield.players.add(Player.new(json["avatar"]))
-      @bot = RandomBot.new(@connection, @avatar, @position, @battlefield)
+      @bot = AvoidanceBot.new(@connection, @avatar, @position, @battlefield)
     else
       @battlefield.players.add(Player.new(json["avatar"]))
     end

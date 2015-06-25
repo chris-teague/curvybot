@@ -1,39 +1,55 @@
 class AvoidanceBot < Personality
 
-  # attr_accessor :desired_direction, :random_direction_details
+  attr_accessor :desired_direction, :random_direction_details
+
+  DistanceToPanic = 800
 
   def position_updated
     if going_to_hit_wall?
       avoid_wall
     else
-      continue
+      randomly_continue
     end
   end
 
   protected
 
     def going_to_hit_wall?
-      line_in_direction = (position + (direction_vector.normalize * 500).to_a)
+      return false if direction_vector.norm == 0
+
+      dv = direction_vector.normalize * DistanceToPanic
       current = @geo_factory.point(position[0], position[1])
-      future  = @geo_factory.point(line_in_direction[0], line_in_direction[1])
+      future  = @geo_factory.point(position[0] + dv[0], position[1] + dv[1])
       line    = @geo_factory.line(current, future)
 
-      if @battlefield.boundaries.intersects?(line)
+      @battlefield.started_game!
+
+      if line.intersects?(@battlefield.boundaries)
         # going to hit.
         # get distance
         # get distance left
         # get distance right
 
-        binding.pry
+        lv = direction_left.normalize * DistanceToPanic
+        rv = direction_right.normalize * DistanceToPanic
 
-        # line_in_left = (position + (direction_vector.normalize * 500).to_a)
-        # line         = @geo_factory.line(current, future)
+        left_point  = @geo_factory.point(position[0] + lv[0], position[1] + lv[1])
+        right_point = @geo_factory.point(position[0] + rv[0], position[1] + rv[1])
 
-        # current = @geo_factory.point(position[0], position[1])
-        # distance_left = @battlefield.boundaries.intersects?(line)
+        line_left   = @geo_factory.line(current, left_point)
+        line_right  = @geo_factory.line(current, right_point)
 
+        distance_straight = { distance: line.distance(@battlefield.boundaries),       direction: :left! }
+        distance_left     = { distance: line_left.distance(@battlefield.boundaries),  direction: :right! }
+        distance_right    = { distance: line_right.distance(@battlefield.boundaries), direction: :straight! }
+
+        direction = [distance_straight, distance_left, distance_right].sort_by { |a| a[:distance] }.first
+        send(direction)
+
+        true
+      else
+        false
       end
-
     end
 
     def avoid_wall
@@ -71,7 +87,7 @@ class AvoidanceBot < Personality
           @random_direction_details = nil
         end
       else
-        @random_direction_details = [[:left!, :right!, :straight!].shuffle.first, rand(10..100)]
+        @random_direction_details = [[:left!, :right!, :straight!].shuffle.first, rand(1..70)]
       end
     end
 

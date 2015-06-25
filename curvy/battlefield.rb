@@ -20,6 +20,7 @@ class Battlefield
   end
 
   def started_game!
+    return if @started_game
     puts 'Setting up GEO'
     top_left     = @geo_factory.point(0, 0)
     top_right    = @geo_factory.point(0, size)
@@ -45,7 +46,7 @@ class Battlefield
     if player = @players.select { |p| p.avatar_id == avatar_id }.first
       if player.position && new_position != player.position
         if player.is_printing_line?
-          binding.pry
+
         end
       else
         player.position = new_position
