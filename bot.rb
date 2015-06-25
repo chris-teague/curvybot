@@ -1,6 +1,8 @@
 require 'em-websocket-client'
 require 'pry'
 
+require_relative('curvy/personality')
+
 EM.run {
 
   Dir[File.join(File.dirname(__FILE__), 'curvy', '*.rb')].each { |file| require file }
