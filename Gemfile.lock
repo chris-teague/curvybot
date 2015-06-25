@@ -1,6 +1,12 @@
 GEM
   remote: https://rubygems.org/
   specs:
+    activesupport (4.2.2)
+      i18n (~> 0.7)
+      json (~> 1.7, >= 1.7.7)
+      minitest (~> 5.1)
+      thread_safe (~> 0.3, >= 0.3.4)
+      tzinfo (~> 1.1)
     em-websocket (0.5.1)
       eventmachine (>= 0.12.9)
       http_parser.rb (~> 0.6.0)
@@ -9,15 +15,17 @@ GEM
       websocket
     eventmachine (1.0.7)
     http_parser.rb (0.6.0)
-    insult_generator (0.0.1)
+    i18n (0.7.0)
+    json (1.8.3)
+    memoist (0.12.0)
+    minitest (5.7.0)
+    ruby-geometry (0.0.5)
+      activesupport
+      memoist
+    thread_safe (0.3.5)
+    tzinfo (1.2.2)
+      thread_safe (~> 0.1)
     websocket (1.2.2)
-    websocket-eventmachine-base (1.1.0)
-      eventmachine (~> 1.0)
-      websocket (~> 1.0)
-      websocket-native (~> 1.0)
-    websocket-eventmachine-client (1.1.0)
-      websocket-eventmachine-base (~> 1.0)
-    websocket-native (1.0.0)
 
 PLATFORMS
   ruby
@@ -26,5 +34,4 @@ DEPENDENCIES
   em-websocket
   em-websocket-client
   eventmachine
-  insult_generator
-  websocket-eventmachine-client
+  ruby-geometry

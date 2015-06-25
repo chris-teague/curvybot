@@ -1,14 +1,9 @@
-require 'em-websocket'
 require 'em-websocket-client'
 require 'pry'
-require_relative 'curvy'
-require_relative 'personality'
-require_relative 'random_bot'
-require_relative 'battlefield'
-require_relative 'room'
-require_relative 'round'
 
 EM.run {
+
+  Dir[File.join(File.dirname(__FILE__), 'curvy', '*.rb')].each { |file| require file }
 
   conn = EventMachine::WebSocketClient.connect("ws://curvy.cteague.com.au")
   @curvy = Curvy.new(conn)

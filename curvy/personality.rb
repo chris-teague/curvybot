@@ -1,7 +1,10 @@
-# require 'math'
-
 #
-# Initialized on game start
+# Inherit this to get your bot started!
+#
+# Provides basic interface for tracking position, direction & issuing
+# commands to determine direction.
+#
+# Implement 'position_updated' to do your thang
 #
 class Personality
 
@@ -11,24 +14,20 @@ class Personality
     raise "NotImplementedError"
   end
 
-  attr_accessor :id, :connection, :position, :curvy, :direction, :previous_position
+  attr_accessor :id, :connection, :position, :battlefield, :direction, :previous_position
 
-  def initialize(connection, id, position, curvy)
-    @connection = connection
-    @id         = id
-    @position   = position
-    @curvy      = curvy
+  def initialize(connection, id, position, battlefield)
+    @connection  = connection
+    @id          = id
+    @position    = position
+    @battlefield = battlefield
   end
 
   def left!
-    puts 'MOVE LEFT'
-    puts "[[\"player:move\",{\"avatar\":#{@id},\"move\":-1}]]"
     @connection.send_msg("[[\"player:move\",{\"avatar\":#{@id},\"move\":-1}]]")
   end
 
   def right!
-    puts 'MOVE RIGHT'
-    puts "[[\"player:move\",{\"avatar\":#{@id},\"move\":1}]]"
     @connection.send_msg("[[\"player:move\",{\"avatar\":#{@id},\"move\":1}]]")
   end
 
@@ -50,6 +49,10 @@ class Personality
     @previous_position = position
     @position = value
     position_updated
+  end
+
+  def map_size
+    @battlefield.size
   end
 
 end

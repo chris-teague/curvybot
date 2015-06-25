@@ -11,8 +11,6 @@ class Curvy
                 :players, :playing
 
   MESSAGE  = /(room|round):(\w*)/
-  GAMEMESSAGE  = /game:(\w*)/
-  ROUNDMESSAGE = /round:(\w*)/
 
   NAME = "Curvybot#{rand(1000)}"
 
@@ -27,13 +25,13 @@ class Curvy
     @dead         = false
     @players      = 0
     @connection   = connection
-    @positions    = {}
 
-    @room  = Room.new(self)
-    @round = Round.new(self)
+    @room         = Room.new(self)
+    @round        = Round.new(self)
+    @battlefield  = Battlefield.new
 
     EM.add_periodic_timer(10) do
-      @connection.send_msg '[["activity",true]]'
+      @connection.send_msg('[["activity",true]]')
     end
   end
 
@@ -43,12 +41,10 @@ class Curvy
     @playing      = false
     @avatar       = false
     @dead         = false
-    @positions    = {}
   end
 
   def round_end
     @dead      = false
-    @positions = {}
   end
 
   def round_winner(json)
@@ -120,7 +116,7 @@ class Curvy
     if json['success'] == true
       puts "BOT: Joined Room"
       @added_player = true
-      @connection.send_msg([["player:add", { name: 'Cornholio', color: '#bada55' }, @id]].to_json)
+      @connection.send_msg([["player:add", { name: NAME, color: '#bada55' }, @id]].to_json)
     else
       puts 'NAME ALREADY TAKEN'
     end
@@ -129,10 +125,6 @@ class Curvy
   def signal_ready
     puts "BOT: I'm Ready!"
     @connection.send_msg "[[\"room:ready\",{\"player\":#{@player_id}},#{@id}]]" unless @ready
-  end
-
-  def shart_moving_yo
-    @bot = RandomBot.new(@connection, @avatar, @position, self)
   end
 
   def in_room?
@@ -144,13 +136,27 @@ class Curvy
   end
 
   #
-  # FIXME:
+  # FIXME: This is a painpoint...
   #
   def issue_ready
     puts 'BOT: Issuing Ready'
     EM.add_timer(rand(0..2.1)) do
       @connection.send_msg '[["ready"]]'
       @next_ready = true
+    end
+  end
+
+  #
+  # As above, this is reliant on flakey logic.
+  #
+  def set_avatar(json, raw_msg)
+    if @next_ready
+      @next_ready = false
+      @avatar = json["avatar"]
+      @battlefield.players.add(Player.new(json["avatar"]))
+      @bot = RandomBot.new(@connection, @avatar, @position, @battlefield)
+    else
+      @battlefield.players.add(Player.new(json["avatar"]))
     end
   end
 
@@ -161,20 +167,8 @@ class Curvy
     end
   end
 
-  def set_avatar(json, raw_msg)
-    if @next_ready
-      @next_ready = false
-      puts 'BOT: Setting Avatar'
-      puts raw_msg
-      @avatar = json["avatar"]
-      shart_moving_yo
-    else
-      puts 'ALREADY READY'
-    end
-  end
-
   def set_positions(json)
-    @positions[json[0]] == json[1]
+    @battlefield.update_position(json[0], json[1])
     @bot.position = json[1] if @bot && json[0] == @avatar
   end
 

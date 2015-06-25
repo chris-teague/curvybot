@@ -2,8 +2,6 @@ class RandomBot < Personality
 
   attr_accessor :desired_direction, :random_direction_details
 
-  MAP_SIZE=8000
-
   def position_updated
 
     if !@desired_direction.nil?
@@ -31,7 +29,7 @@ class RandomBot < Personality
   protected
 
     def going_to_hit_wall?
-      @position[0] < 800 || @position[1] < 800 || @position[0] > 7200 || @position[1] > 7200
+      @position[0] < 1000 || @position[1] < 1000 || @position[0] > (map_size - 1000) || @position[1] > (map_size - 1000)
     end
 
     def avoid_wall
@@ -40,7 +38,7 @@ class RandomBot < Personality
 
     def set_desired_direction_as_center
       return if @desired_direction
-      center_vector = [MAP_SIZE/2 - @position[0], MAP_SIZE/2 - @position[1]]
+      center_vector = [map_size/2 - @position[0], map_size/2 - @position[1]]
       @desired_direction = Math.atan2(*center_vector) * 180/ Math::PI
     end
 

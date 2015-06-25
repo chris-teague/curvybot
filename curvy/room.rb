@@ -1,8 +1,5 @@
 #
-# Handles any room based messages & triggers appripriate actions
-#
-# Note: Tightly coupled to curvy object. This is simply to neaten
-#       up the Curvy object.
+# Handles any room based messages & triggers appropriate actions
 #
 class Room
 
@@ -35,6 +32,14 @@ class Room
 
   def game_stop(json)
     @curvy.playing = false
+  end
+
+  def game(json)
+    puts "GAME: #{json.to_s}"
+  end
+
+  def master(json)
+    puts 'NEW MASTER'
   end
 
 end
