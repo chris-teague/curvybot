@@ -2,31 +2,30 @@ require 'json'
 # require 'insult_generator'
 
 #
-# Handle loading into room, etc
+# Curvy Bot manager
 #
+#  - handle high level flows of joining, id assignment & state
+#    related to the bot
 #
 class Curvy
 
-  attr_accessor :rooms, :id, :player_id, :state, :connection, :in_room, :room_name,
-                :players, :playing
+  attr_accessor :rooms, :id, :player_id, :connection, :dead,
+                :in_room, :room_name, :playing, :next_ready
 
   MESSAGE  = /(room|round):(\w*)/
 
   NAME = "Curvybot#{rand(1000)}"
 
   def initialize(connection)
-    @state        = :closed
     @in_room      = false
-    @added_player = false
     @ready        = false
     @next_ready   = false
-    @playing      = false # delete me??
+    @playing      = false # is this still required?
     @avatar       = false
     @dead         = false
-    @players      = 0
-    @connection   = connection
 
-    @room         = Room.new(self)
+    @connection   = connection
+    @room         = Room.new(self, @connection)
     @round        = Round.new(self)
     @battlefield  = Battlefield.new
 
@@ -43,17 +42,12 @@ class Curvy
     @dead         = false
   end
 
-  def round_end
-    @dead      = false
-  end
-
-  def round_winner(json)
-    puts "WINNER: #{json['winner']}"
-    chat('Motherfuckas I won!') if json['winner'] == @avatar
+  def chat(message)
+    @connection.send_msg([['room:talk', { content: message }, @id]].to_json)
   end
 
   #
-  # What to do with messages received?
+  # Websocket Message Delegation / Routing
   #
 
   def receive(msg)
@@ -63,19 +57,22 @@ class Curvy
     json.each do |msg|
       case msg.first
       when 0          then set_id(msg.last)
-      when @id        then joined_room(msg.last)
+      when @id        then @room.joined_room(msg.last)
       when 'ready'    then set_avatar(msg.last, json)
       when 'position' then set_positions(msg.last)
+      when 'point'    then set_point(msg.last)
       when 'die'      then set_dead(msg.last)
-      when MESSAGE    then puts msg.first; parse_message(*msg)
+      when 'property' then set_property(msg.last)
+      when MESSAGE    then parse_message(*msg)
       else
-        puts "RECEIVED: #{msg}"
+        puts "RECEIVED UNHANDLED MESSAGE: #{msg}"
       end
     end
   rescue Exception => e
     puts "Exception: #{e}"
     puts "Mesasge Content:"
-    puts msg
+    puts "----"
+    puts "#{msg}"
     puts "----"
   end
 
@@ -85,69 +82,22 @@ class Curvy
     instance.send(methods.join('_'), json)
   end
 
-  def round_message(action, json=nil)
-    @round.send(action.split(':')[1..-1].join('_'), json)
-  end
-
   #
-  # Actions to take
+  # Event handlers that don't have a better place to live at this stage.
   #
 
   def whoami
-    @state = :whoami
     @connection.send_msg '[["whoami",null,0]]'
   end
 
   def set_id(id)
-    puts 'BOT: Setting Player ID'
     @id = id
-    fetch_rooms
-  end
-
-  def fetch_rooms
-    puts 'BOT: Fetching Rooms'
-    EM.next_tick { @connection.send_msg('[["room:fetch"]]') }
-  end
-
-  # FIXME: this can fail!
-  def joined_room(json)
-    puts json
-    return if @added_player
-    if json['success'] == true
-      puts "BOT: Joined Room"
-      @added_player = true
-      @connection.send_msg([["player:add", { name: NAME, color: '#bada55' }, @id]].to_json)
-    else
-      puts 'NAME ALREADY TAKEN'
-    end
-  end
-
-  def signal_ready
-    puts "BOT: I'm Ready!"
-    @connection.send_msg "[[\"room:ready\",{\"player\":#{@player_id}},#{@id}]]" unless @ready
-  end
-
-  def in_room?
-    @in_room
-  end
-
-  def chat(message)
-    @connection.send_msg([['room:talk', { content: message }, @id]].to_json)
+    @room.fetch_rooms
   end
 
   #
-  # FIXME: This is a painpoint...
-  #
-  def issue_ready
-    puts 'BOT: Issuing Ready'
-    EM.add_timer(rand(0..2.1)) do
-      @connection.send_msg '[["ready"]]'
-      @next_ready = true
-    end
-  end
-
-  #
-  # As above, this is reliant on flakey logic.
+  # FIXME: This is somehwat random as to what avatar_id gets consumed
+  # FIXME: This belongs to a game or battlefield instance, not curvy
   #
   def set_avatar(json, raw_msg)
     if @next_ready
@@ -160,16 +110,26 @@ class Curvy
     end
   end
 
+  def set_positions(json)
+    @bot.position = json[1] if @bot && json[0] == @avatar
+  end
+
+  def set_point(json)
+    @battlefield.update_point(json[0], json[1])
+  end
+
+  def set_property(json)
+    @battlefield.update_property(json)
+  end
+
+  #
+  # FIXME: Belongs elsewhere, battlefield or personality maybe?
+  #
   def set_dead(json)
     if json["avatar"] == @avatar
       puts "BOT: Whoops, I died :("
       @dead = true
     end
-  end
-
-  def set_positions(json)
-    @battlefield.update_position(json[0], json[1])
-    @bot.position = json[1] if @bot && json[0] == @avatar
   end
 
 end

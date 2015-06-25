@@ -12,11 +12,11 @@ class Round
   end
 
   def end(json)
-    @curvy.round_end
+    @curvy.dead = false
   end
 
   def winner(json)
-    @curvy.round_winner(json)
+    @curvy.chat('Whoop!') if json['winner'] == @curvy.avatar
   end
 
 end
