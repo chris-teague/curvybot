@@ -4,6 +4,7 @@
 require 'set'
 require 'rgeo'
 require 'matrix'
+require 'rgeo/geo_json'
 
 class Battlefield
 
@@ -44,13 +45,12 @@ class Battlefield
   def update_point(avatar_id, new_position)
     started_game! unless @started_game
     if player = @players.select { |p| p.avatar_id == avatar_id }.first
-      if player.position && new_position != player.position
-        if player.is_printing_line?
-
-        end
+      if player.position && new_position != player.position && player.is_printing_line?
+        @player_lines
       else
         player.position = new_position
         # First point, no line for now
+
       end
     end
   end
@@ -59,7 +59,7 @@ class Battlefield
   def update_property(json)
     if player = @players.select { |p| p.avatar_id == json['avatar'] }.first
       if json['property'] == 'printing'
-        puts 'Updating line printing'
+        # puts 'Updating line printing'
         player.printing_line = json['value']
       end
     end

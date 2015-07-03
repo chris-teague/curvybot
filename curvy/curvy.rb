@@ -11,9 +11,9 @@ class Curvy
 
   attr_accessor :rooms, :id, :player_id, :connection, :dead,
                 :in_room, :room_name, :playing, :next_ready,
-                :avatar
+                :avatar, :bot
 
-  MESSAGE  = /(room|round):(\w*)/
+  MESSAGE  = /(room|round|bonus):(\w*)/
 
   NAME = "Curvybot#{rand(1000)}"
 
@@ -29,10 +29,15 @@ class Curvy
     @room         = Room.new(self, @connection)
     @round        = Round.new(self)
     @battlefield  = Battlefield.new
+    @bonus        = Bonus.new
 
     EM.add_periodic_timer(10) do
       @connection.send_msg('[["activity",true]]')
     end
+  end
+
+  def name
+    @bot ? @bot.name : NAME
   end
 
   def back_to_lobby
@@ -53,6 +58,7 @@ class Curvy
 
   def receive(msg)
     return if msg.empty?
+    return if msg =~ /^\d+$/
 
     json = JSON.parse(msg)
     json.each do |msg|

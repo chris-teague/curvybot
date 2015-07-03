@@ -49,6 +49,10 @@ class Room
     puts 'NEW MASTER'
   end
 
+  # Captures chat messages to the room. Ignore for now.
+  def talk(json)
+  end
+
   #
   # Other methods
   #
@@ -63,7 +67,7 @@ class Room
     if json['success'] == true
       puts "BOT: Joined Room"
       @added_player = true
-      @connection.send_msg([["player:add", { name: Curvy::NAME, color: '#bada55' }, @curvy.id]].to_json)
+      @connection.send_msg([["player:add", { name: @curvy.name, color: '#bada55' }, @curvy.id]].to_json)
     else
       puts 'NAME ALREADY TAKEN'
       # What now?

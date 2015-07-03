@@ -7,8 +7,9 @@ class Round
     @curvy = curvy
   end
 
-  def new(json)
+  def new(json=nil)
     puts "TIME TO PARTY, NEW ROUND"
+    @curvy.bot.battlefield = Battlefield.new
   end
 
   def end(json)
