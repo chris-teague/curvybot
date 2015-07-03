@@ -5,7 +5,7 @@ Super alpha, probably doesn't work.
 
 ## Getting it Working
 
-`bundle install`
+`bundle install`   
 `ruby bot.rb`
 
 ## Making your own bot
