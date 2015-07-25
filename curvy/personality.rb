@@ -15,7 +15,7 @@ Point = Struct.new(:x,:y) do
     lambda{ |x| self.new *x }
   end
 
-  def rotate( degrees, origin=Point.new(0.0,0.0) )
+  def rotate(degrees, origin=Point.new(0.0,0.0))
     radians = degrees * Math::PI/180.0
     x2 = x-origin.x; y2 = y-origin.y
     cos = Math.cos(radians); sin = Math.sin(radians)
@@ -51,17 +51,17 @@ class Personality
   end
 
   def left!
-    puts "Moving Left"
+    # puts "Moving Left"
     move!(LEFT)
   end
 
   def right!
-    puts "Moving Right"
+    # puts "Moving Right"
     move!(RIGHT)
   end
 
   def straight!
-    puts "Moving Straight"
+    # puts "Moving Straight"
     move!(STRAIGHT)
   end
 
@@ -79,14 +79,16 @@ class Personality
     Vector[@position[0] - @previous_position[0], @position[1] - @previous_position[1]]
   end
 
+  def direction_with_angle(angle)
+    Vector[*Point.new(direction_vector[0], direction_vector[1]).rotate(angle)]
+  end
+
   def direction_left
-    turned_left = Point.new(direction_vector[0], direction_vector[1]).rotate(15)
-    Vector[turned_left[0], turned_left[1]]
+    direction_with_angle(-45)
   end
 
   def direction_right
-    turned_right = Point.new(direction_vector[0], direction_vector[1]).rotate(-15)
-    Vector[turned_right[0], turned_right[1]]
+    direction_with_angle(45)
   end
 
   def position=(value)

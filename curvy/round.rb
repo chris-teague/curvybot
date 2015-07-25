@@ -8,8 +8,11 @@ class Round
   end
 
   def new(json=nil)
+    GC.enable
+    GC.start
+    GC.disable
     puts "TIME TO PARTY, NEW ROUND"
-    @curvy.bot.battlefield = Battlefield.new
+    @curvy.bot.battlefield.new_round
   end
 
   def end(json)

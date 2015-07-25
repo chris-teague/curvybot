@@ -11,7 +11,7 @@ class Curvy
 
   attr_accessor :rooms, :id, :player_id, :connection, :dead,
                 :in_room, :room_name, :playing, :next_ready,
-                :avatar, :bot
+                :avatar, :bot, :battlefield
 
   MESSAGE  = /(room|round|bonus):(\w*)/
 
@@ -75,12 +75,12 @@ class Curvy
         puts "RECEIVED UNHANDLED MESSAGE: #{msg}"
       end
     end
-  rescue Exception => e
-    puts "Exception: #{e}"
-    puts "Mesasge Content:"
-    puts "----"
-    puts "#{msg}"
-    puts "----"
+  # rescue Exception => e
+  #   puts "Exception: #{e}"
+  #   puts "Mesasge Content:"
+  #   puts "----"
+  #   puts "#{msg}"
+  #   puts "----"
   end
 
   def parse_message(action, json)

@@ -1,19 +1,20 @@
 class AvoidanceBot < Personality
 
-  attr_accessor :next_move, :previous_move, :random_direction_details
+  attr_accessor :next_move, :previous_move, :random_direction_details, :updating
 
-  DistanceToPanic = 1000
+  DistanceToPanic = 2200
 
   NAME = "AvoidyBot#{rand(1000)}"
 
   def position_updated
-    if next_move_sorted?
-      apply_next_move
-    elsif going_to_hit_wall?
-      avoid_wall
-    else
-      #randomly_continue
+    if @updating
+      return
     end
+    Thread.new {
+      @updating = true
+      avoid_wall
+      @updating = false
+    }
   end
 
   def name
@@ -22,11 +23,6 @@ class AvoidanceBot < Personality
 
   protected
 
-    def next_move_sorted?
-      puts 'Next move sorted'
-      @next_move
-    end
-
     def apply_next_move
       send(@next_move[:direction]) if @next_move[:direction] != @previous_move
       @previous_move = @next_move[:direction]
@@ -34,62 +30,50 @@ class AvoidanceBot < Personality
       @next_move = nil if @next_move[:count] <= 0
     end
 
-    def going_to_hit_wall?
-      return false if direction_vector.nil? || direction_vector.norm == 0
+    def distance_in_direction(angle, direction_to_turn)
+      sv = direction_with_angle(angle).normalize * DistanceToPanic
+      point = @geo_factory.point(position[0] + sv[0], position[1] + sv[1])
+      line  = @geo_factory.line(current_direction, point)
+      {
+        distance: @battlefield.boundaries.intersection(line).distance(current_direction),
+        direction: direction_to_turn
+      }
+    end
 
-      dv = direction_vector.normalize * DistanceToPanic
-      current = @geo_factory.point(position[0], position[1])
-      future  = @geo_factory.point(position[0] + dv[0], position[1] + dv[1])
-      line    = @geo_factory.line(current, future)
-
-      @battlefield.started_game!
-
-      line.intersects?(@battlefield.boundaries)
+    def current_direction
+      @geo_factory.point(position[0], position[1])
     end
 
     def avoid_wall
-      # going to hit.
-      # get distance
-      # get distance left
-      # get distance right
-      current = @geo_factory.point(position[0], position[1])
+      @battlefield.started_game!
 
-      lv = direction_left.normalize * (@battlefield.size * 2)
-      rv = direction_right.normalize * (@battlefield.size * 2)
-      sv = direction_vector.normalize * (@battlefield.size * 2)
+      return unless direction_vector
+      return if direction_vector.norm == 0.0
 
-      left_point     = @geo_factory.point(position[0] + lv[0], position[1] + lv[1])
-      right_point    = @geo_factory.point(position[0] + rv[0], position[1] + rv[1])
-      straight_point = @geo_factory.point(position[0] + sv[0], position[1] + sv[1])
+      results =
+      [distance_in_direction(  0, :straight!),
+       distance_in_direction(-35, :left!),
+       distance_in_direction( 35, :right!)]
 
-      line_left      = @geo_factory.line(current, left_point)
-      line_right     = @geo_factory.line(current, right_point)
-      line_straight  = @geo_factory.line(current, straight_point)
-
-      distance_straight = { distance: @battlefield.boundaries.intersection(line_straight).distance(current), direction: :straight! }
-      distance_left     = { distance: @battlefield.boundaries.intersection(line_left).distance(current),  direction: :left! }
-      distance_right    = { distance: @battlefield.boundaries.intersection(line_right).distance(current), direction: :right! }
-
-      result = [distance_straight, distance_left, distance_right].sort_by { |a| -a[:distance] }.first
-
-      puts "WALL DISTANCE:"
-      puts "LEFT: #{distance_left} RIGHT: #{distance_right} STRAIGHT: #{distance_straight}"
-      puts "MOVING: #{result[:direction]}"
-      send(result[:direction])
-
-      if result[:distance] > 800
-        count = 8
+      if results.select { |a| a[:distance] != 0.0 }.count > 0
+        direction = results.map { |a| a[:distance] = DistanceToPanic if a[:distance] == 0.0; a }.
+          sort_by { |a| -a[:distance] }.first[:direction]
+        send(direction) unless @previous_move == direction
+        @previous_move = direction
       else
-        count = 12
+        if outside_of_danger_zone
+          randomly_continue
+        else
+          puts 'INSIDE DANGERZONE'
+        end
       end
+    end
 
-      @next_move = { direction: direction, count: count }
-      @previous_move = direction
+    SaveZoneDistance = 1100
 
-      # all = @geo_factory.collection([@battlefield.boundaries, line_left, line_right, line_straight])
-
-      puts 'MOVE OUT THE WAY!'
-
+    def outside_of_danger_zone
+      position[0] > (0 + SaveZoneDistance) && position[0] < (@battlefield.size - SaveZoneDistance) &&
+      position[1] > (0 + SaveZoneDistance) && position[1] < (@battlefield.size - SaveZoneDistance)
     end
 
     def randomly_continue
@@ -102,7 +86,7 @@ class AvoidanceBot < Personality
           @random_direction_details = nil
         end
       else
-        @random_direction_details = [[:left!, :right!, :straight!].shuffle.first, rand(1..70)]
+        @random_direction_details = [[:left!, :right!, :straight!].shuffle.first, rand(1..8)]
       end
     end
 

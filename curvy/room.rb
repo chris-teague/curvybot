@@ -53,6 +53,10 @@ class Room
   def talk(json)
   end
 
+  # Someone leaves the room. Ignore for now.
+  def leave(json)
+  end
+
   #
   # Other methods
   #
